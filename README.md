@@ -6,6 +6,8 @@
 
 # React-Native-Gromore 聚合广告
 
+![actions-status](https://github.com/PBK-B/react-native-gromore-devops/actions/workflows/check-sdk-version.yml/badge.svg)
+
 > 穿山甲 GroMore SDK 的 React Native 的实现，GroMore SDK 是一个聚合广告 SDK 现已支持穿山甲、Abmob、百度、优量汇、游可赢、快手、Mintegral、Sigmob、Unity 等广告平台的聚合对接。
 
 react-native-gromore 文档: <https://docs.ads.zmkj6.top>
