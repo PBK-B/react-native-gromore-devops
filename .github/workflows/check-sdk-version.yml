@@ -1,0 +1,92 @@
+name: "Check Version for Gromore SDK"
+
+on:
+  push:
+    branches:
+      - dev/ops
+  schedule:
+    - cron: "0 1 * * *"  # 每天凌晨 1 点
+  workflow_dispatch:  # 允许手动触发
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Request API to Get IOS Version
+      id: get-ios-version
+      run: |
+        response=$(curl -s http://gromore.ads.zmkj6.top/api/logs/ios?format=json)
+        api_version=$(echo $response | jq -r '.data.Version')
+
+        echo "API version is $api_version"
+        echo "IOS_API_VERSION=$api_version" >> $GITHUB_ENV
+
+    - name: Get Latest Ios Issue Version
+      id: get-ios-latest-issue
+      env:     
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        response=$(curl -s -H "Authorization: Bearer $GITHUB_TOKEN" \
+        -H "Accept: application/vnd.github.v3+json" \
+        https://api.github.com/repos/${{ github.repository }}/issues?labels=ios-version)
+
+        ios_latest_issue=$(echo "$response" | jq -r '.[0].title' | sed -n 's/^IOS SDK Version //p' || echo "0")
+        latest_issue=$(echo "$response" | jq -r '.[0]')
+        echo "Latest issue version is $latest_issue"
+        echo "IOS Latest issue version is $ios_latest_issue"
+        echo "IOS_LATEST_ISSUE_VERSION=${ios_latest_issue}" >> $GITHUB_ENV
+
+    - name: Compare Versions and Create Issue if Newer
+      env:     
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        if [ "${{ env.IOS_API_VERSION }}" != "${{ env.IOS_LATEST_ISSUE_VERSION }}" ]; then
+          echo "Creating issue for version ${{ env.IOS_API_VERSION }}"
+          gh issue create \
+          --title "IOS SDK Version ${{ env.IOS_API_VERSION }}" \
+          --body "Gromore a new ios version ${{ env.IOS_API_VERSION }} has been released. @PBK-B @gaoxuan-haxibiao, please review." \
+          --label "ios-version" \
+          --repo ${{ github.repository }}
+        else
+          echo "Version has not changed."
+        fi  
+
+    - name: Request API to Get Android Version
+      id: get-android-version
+      run: |
+        response=$(curl -s http://gromore.ads.zmkj6.top/api/logs/android?format=json)
+        api_version=$(echo $response | jq -r '.data.Version')
+
+        echo "API version is $api_version"
+        echo "ANDROID_API_VERSION=$api_version" >> $GITHUB_ENV
+
+    - name: Get Latest Issue Version
+      id: get-android-latest-issue
+      env:     
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        response=$(curl -s -H "Authorization: Bearer $GITHUB_TOKEN" \
+        -H "Accept: application/vnd.github.v3+json" \
+        https://api.github.com/repos/${{ github.repository }}/issues?labels=android-version)
+        
+        android_latest_issue=$(echo "$response" | jq -r '.[0].title' | sed -n 's/^Android SDK Version //p' || echo "0")
+        
+        echo "Latest issue version is $android_latest_issue"
+        echo "ANDROID_LATEST_ISSUE_VERSION=${android_latest_issue}" >> $GITHUB_ENV
+
+    - name: Compare Versions and Create Issue if Newer
+      env:     
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        if [ "${{ env.ANDROID_API_VERSION }}" != "${{ env.ANDROID_LATEST_ISSUE_VERSION }}" ]; then
+          echo "Creating issue for version ${{ env.ANDROID_API_VERSION }}"
+          gh issue create \
+          --title "Android SDK Version ${{ env.ANDROID_API_VERSION }}" \
+          --body "Gromore a new android version ${{ env.ANDROID_API_VERSION }} has been released. @PBK-B @gaoxuan-haxibiao, please review." \
+          --label "android-version" \
+          --repo ${{ github.repository }}
+        else
+          echo "Version has not changed."
+        fi
+      
