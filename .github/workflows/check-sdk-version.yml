@@ -11,7 +11,7 @@ on:
 env:
   # Setting an environment variable with the value of a configuration variable
   GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN || secrets.GITHUB_TOKEN }}
-  USER_REP: ${{ vars.ENV_CONTEXT_VAR || github.repository }}
+  USER_REP: ${{ vars.USER_REP || github.repository }}
 
 jobs:
   build:
@@ -32,7 +32,7 @@ jobs:
       run: |
         response=$(curl -s -H "Authorization: Bearer $GITHUB_TOKEN" \
         -H "Accept: application/vnd.github.v3+json" \
-        https://api.github.com/repos/$USER_REP/issues?labels=ios-version)
+        https://api.github.com/repos/${{ env.USER_REP }}/issues?labels=ios-version)
 
         ios_latest_issue=$(echo "$response" | jq -r '.[0].title' | sed -n 's/^IOS SDK Version //p' || echo "0")
         latest_issue=$(echo "$response" | jq -r '.[0]')
@@ -48,7 +48,7 @@ jobs:
           --title "IOS SDK Version ${{ env.IOS_API_VERSION }}" \
           --body "Gromore a new ios version ${{ env.IOS_API_VERSION }} has been released. @PBK-B @gaoxuan-haxibiao, please review." \
           --label "ios-version" \
-          --repo $USER_REP
+          --repo ${{ env.USER_REP }}
         else
           echo "Version has not changed."
         fi  
@@ -67,7 +67,7 @@ jobs:
       run: |
         response=$(curl -s -H "Authorization: Bearer $GITHUB_TOKEN" \
         -H "Accept: application/vnd.github.v3+json" \
-        https://api.github.com/repos/$USER_REP/issues?labels=android-version)
+        https://api.github.com/repos/${{ env.USER_REP }}/issues?labels=android-version)
         
         android_latest_issue=$(echo "$response" | jq -r '.[0].title' | sed -n 's/^Android SDK Version //p' || echo "0")
         
@@ -82,7 +82,7 @@ jobs:
           --title "Android SDK Version ${{ env.ANDROID_API_VERSION }}" \
           --body "Gromore a new android version ${{ env.ANDROID_API_VERSION }} has been released. @PBK-B @gaoxuan-haxibiao, please review." \
           --label "android-version" \
-          --repo $USER_REP
+          --repo ${{ env.USER_REP }}
         else
           echo "Version has not changed."
         fi
