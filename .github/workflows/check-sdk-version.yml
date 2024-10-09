@@ -11,6 +11,7 @@ on:
 env:
   # Setting an environment variable with the value of a configuration variable
   USER_TOKEN: ${{ secrets.MY_GITHUB_TOKEN || secrets.GITHUB_TOKEN }}
+  GH_TOKEN: ${{ secrets.MY_GITHUB_TOKEN || secrets.GITHUB_TOKEN }}
   USER_REP: ${{ vars.USER_REP || github.repository }}
 
 jobs:
