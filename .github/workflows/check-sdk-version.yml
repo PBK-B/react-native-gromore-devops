@@ -45,6 +45,7 @@ jobs:
       run: |
         if [ "${{ env.IOS_API_VERSION }}" != "${{ env.IOS_LATEST_ISSUE_VERSION }}" ]; then
           echo "Creating issue for version ${{ env.IOS_API_VERSION }}"
+          gh secret set "${{ $USER_TOKEN }}"
           gh issue create \
           --title "IOS SDK Version ${{ env.IOS_API_VERSION }}" \
           --body "Gromore a new ios version ${{ env.IOS_API_VERSION }} has been released. @PBK-B @gaoxuan-haxibiao, please review." \
@@ -79,6 +80,7 @@ jobs:
       run: |
         if [ "${{ env.ANDROID_API_VERSION }}" != "${{ env.ANDROID_LATEST_ISSUE_VERSION }}" ]; then
           echo "Creating issue for version ${{ env.ANDROID_API_VERSION }}"
+          gh secret set "${{ $USER_TOKEN }}"
           gh issue create \
           --title "Android SDK Version ${{ env.ANDROID_API_VERSION }}" \
           --body "Gromore a new android version ${{ env.ANDROID_API_VERSION }} has been released. @PBK-B @gaoxuan-haxibiao, please review." \
