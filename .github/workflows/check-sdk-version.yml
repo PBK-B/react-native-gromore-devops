@@ -47,7 +47,7 @@ jobs:
           echo "Creating issue for version ${{ env.IOS_API_VERSION }}"
           gh issue create \
           --title "IOS SDK Version ${{ env.IOS_API_VERSION }}" \
-          --body "Gromore a new ios version ${{ env.IOS_API_VERSION }} has been released. @PBK-B @gaoxuan-haxibiao, please review." \
+          --body "Gromore a new ios version ${{ env.IOS_API_VERSION }} has been released. please review." \
           --label "ios-version" \
           --repo ${{ env.USER_REP }}
         else
@@ -81,7 +81,7 @@ jobs:
           echo "Creating issue for version ${{ env.ANDROID_API_VERSION }}"
           gh issue create \
           --title "Android SDK Version ${{ env.ANDROID_API_VERSION }}" \
-          --body "Gromore a new android version ${{ env.ANDROID_API_VERSION }} has been released. @PBK-B @gaoxuan-haxibiao, please review." \
+          --body "Gromore a new android version ${{ env.ANDROID_API_VERSION }} has been released. please review." \
           --label "android-version" \
           --repo ${{ env.USER_REP }}
         else
