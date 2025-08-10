@@ -24,8 +24,9 @@ jobs:
       run: |
         response=$(curl -s http://gromore.ads.zmkj6.top/api/logs/ios?format=json)
         api_version=$(echo $response | jq -r -e '.data.Version')
+        download_url=$(echo $response | jq -r '.data.DownloadUrl')
 
-        echo "API version is $api_version"
+        echo "IOS SDK Get API version is $api_version   download url $download_url"
         echo "IOS_API_VERSION=$api_version" >> $GITHUB_ENV
 
     - name: Get Latest Ios Issue Version
@@ -59,8 +60,9 @@ jobs:
       run: |
         response=$(curl -s http://gromore.ads.zmkj6.top/api/logs/android?format=json)
         api_version=$(echo $response | jq -r -e '.data.Version')
+        download_url=$(echo $response | jq -r '.data.DownloadUrl')
 
-        echo "API version is $api_version"
+        echo "Android SDK Get API version is $api_version   download url $download_url"
         echo "ANDROID_API_VERSION=$api_version" >> $GITHUB_ENV
 
     - name: Get Latest Issue Version
