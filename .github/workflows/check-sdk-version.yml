@@ -42,10 +42,12 @@ jobs:
         echo "IOS Latest issue version is $ios_latest_issue"
         echo "IOS_LATEST_ISSUE_VERSION=${ios_latest_issue}" >> $GITHUB_ENV
 
-    - name: Compare Versions and Create Issue if Newer
+    - name: Compare Versions and Create Issue if Newer (IOS)
       run: |
         if [ "${{ env.IOS_API_VERSION }}" != "${{ env.IOS_LATEST_ISSUE_VERSION }}" ]; then
           echo "Creating issue for version ${{ env.IOS_API_VERSION }}"
+          echo "New Android SDK version detected: ${{ env.IOS_API_VERSION }}"
+          echo "create_tag=true" >> $GITHUB_ENV
           gh issue create \
           --title "IOS SDK Version ${{ env.IOS_API_VERSION }}" \
           --body "Gromore a new ios version ${{ env.IOS_API_VERSION }} has been released. @PBK-B @gaoxuan-haxibiao, please review." \
@@ -53,7 +55,32 @@ jobs:
           --repo ${{ env.USER_REP }}
         else
           echo "Version has not changed."
+          echo "create_tag=false" >> $GITHUB_ENV
         fi  
+
+    - name: Create IOS Tag
+      if: env.create_tag == 'true'
+      run: |
+        git config user.name "github-actions[bot]"
+        git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+        git fetch --tags
+        git tag ios/${{ env.IOS_API_VERSION }}
+        git push origin ios/${{ env.IOS_API_VERSION }}
+
+    - name: Download IOS SDK Logs
+      if: env.create_tag == 'true'
+      run: |
+        curl -L "${download_url}" -o android-${{ env.IOS_API_VERSION }}.zip
+        echo "DOWNLOADED_FILE=android-${{ env.IOS_API_VERSION }}.zip" >> $GITHUB_ENV
+
+    - name: Upload IOS Release
+      if: env.create_tag == 'true'
+      uses: ncipollo/release-action@v1
+      with:
+        artifacts: ${{ env.DOWNLOADED_FILE }}
+        tag: android/${{ env.IOS_API_VERSION }}
+        body: "Gromore Android SDK logs for version ${{ env.IOS_API_VERSION }}"
+        token: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Request API to Get Android Version
       id: get-android-version
@@ -77,9 +104,12 @@ jobs:
         echo "Latest issue version is $android_latest_issue"
         echo "ANDROID_LATEST_ISSUE_VERSION=${android_latest_issue}" >> $GITHUB_ENV
 
-    - name: Compare Versions and Create Issue if Newer
+    - name: Compare Versions and Create Issue if Newer (Android)
+      id: compare-android
       run: |
         if [ "${{ env.ANDROID_API_VERSION }}" != "${{ env.ANDROID_LATEST_ISSUE_VERSION }}" ]; then
+          echo "New Android SDK version detected: ${{ env.ANDROID_API_VERSION }}"
+          echo "create_tag=true" >> $GITHUB_ENV
           echo "Creating issue for version ${{ env.ANDROID_API_VERSION }}"
           gh issue create \
           --title "Android SDK Version ${{ env.ANDROID_API_VERSION }}" \
@@ -88,5 +118,30 @@ jobs:
           --repo ${{ env.USER_REP }}
         else
           echo "Version has not changed."
+          echo "create_tag=false" >> $GITHUB_ENV
         fi
+      
+    - name: Create Android Tag
+      if: env.create_tag == 'true'
+      run: |
+        git config user.name "github-actions[bot]"
+        git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+        git fetch --tags
+        git tag android/${{ env.ANDROID_API_VERSION }}
+        git push origin android/${{ env.ANDROID_API_VERSION }}
+    
+    - name: Create Android Tag
+      if: env.create_tag == 'true'
+      run: |
+        curl -L "${download_url}" -o android-${{ env.ANDROID_API_VERSION }}.zip
+        echo "DOWNLOADED_FILE=android-${{ env.ANDROID_API_VERSION }}.zip" >> $GITHUB_ENV
+
+    - name: Upload Android Release
+      if: env.create_tag == 'true'
+      uses: ncipollo/release-action@v1
+      with:
+        artifacts: ${{ env.DOWNLOADED_FILE }}
+        tag: android/${{ env.ANDROID_API_VERSION }}
+        body: "Gromore Android SDK logs for version ${{ env.ANDROID_API_VERSION }}"
+        token: ${{ secrets.GITHUB_TOKEN }}
       
