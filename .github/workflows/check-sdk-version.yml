@@ -57,24 +57,14 @@ jobs:
           echo "Version has not changed."
           echo "create_tag=false" >> $GITHUB_ENV
         fi  
-        
+
     - name: Create IOS Tag
-      run: |
-        git config user.name "github-actions[bot]"
-        git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-        git fetch --tags
-        # 如果没有任何 tag，则直接创建当前版本的 tag
-        if [ -z "$(git tag -l)" ]; then
-          echo "No tags found, creating initial IOS tag ios/${{ env.IOS_API_VERSION }}"
-          git tag ios/${{ env.IOS_API_VERSION }}
-          git push origin ios/${{ env.IOS_API_VERSION }}
-          echo "create_tag=true" >> $GITHUB_ENV
-        elif [ "${{ env.create_tag }}" = "true" ]; then
-          git tag ios/${{ env.IOS_API_VERSION }}
-          git push origin ios/${{ env.IOS_API_VERSION }}
-        else
-          echo "Skip creating IOS tag."
-        fi
+      if: env.create_tag == 'true' || ( ! env.create_tag && env.IOS_API_VERSION != '' )
+      uses: rickstaa/action-create-tag@v1
+      with:
+        tag: ios/${{ env.IOS_API_VERSION }}
+        message: "IOS SDK version ${{ env.IOS_API_VERSION }}"
+        tag_exists_error: false   # 如果 tag 已存在，不报错，避免 workflow fail
 
     - name: Download IOS SDK Logs
       if: env.create_tag == 'true'
@@ -131,24 +121,14 @@ jobs:
         fi
       
     - name: Create Android Tag
-      run: |
-        git config user.name "github-actions[bot]"
-        git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-        git fetch --tags
-        # 如果没有任何 tag，则直接创建当前版本的 tag
-        if [ -z "$(git tag -l)" ]; then
-          echo "No tags found, creating initial Android tag android/${{ env.ANDROID_API_VERSION }}"
-          git tag android/${{ env.ANDROID_API_VERSION }}
-          git push origin android/${{ env.ANDROID_API_VERSION }}
-          echo "create_tag=true" >> $GITHUB_ENV
-        elif [ "${{ env.create_tag }}" = "true" ]; then
-          git tag android/${{ env.ANDROID_API_VERSION }}
-          git push origin android/${{ env.ANDROID_API_VERSION }}
-        else
-          echo "Skip creating Android tag."
-        fi
+      if: env.create_tag == 'true' || ( ! env.create_tag && env.ANDROID_API_VERSION != '' )
+      uses: rickstaa/action-create-tag@v1
+      with:
+        tag: android/${{ env.ANDROID_API_VERSION }}
+        message: "Android SDK version ${{ env.ANDROID_API_VERSION }}"
+        tag_exists_error: false
 
-    - name: Create Android Tag
+    - name: Create Android Package
       if: env.create_tag == 'true'
       run: |
         curl -L "${download_url}" -o android-${{ env.ANDROID_API_VERSION }}.zip
