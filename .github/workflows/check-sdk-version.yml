@@ -57,29 +57,38 @@ jobs:
           echo "Version has not changed."
           echo "create_tag=false" >> $GITHUB_ENV
         fi  
-
+        
     - name: Create IOS Tag
-      if: env.create_tag == 'true'
       run: |
         git config user.name "github-actions[bot]"
         git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
         git fetch --tags
-        git tag ios/${{ env.IOS_API_VERSION }}
-        git push origin ios/${{ env.IOS_API_VERSION }}
+        # 如果没有任何 tag，则直接创建当前版本的 tag
+        if [ -z "$(git tag -l)" ]; then
+          echo "No tags found, creating initial IOS tag ios/${{ env.IOS_API_VERSION }}"
+          git tag ios/${{ env.IOS_API_VERSION }}
+          git push origin ios/${{ env.IOS_API_VERSION }}
+          echo "create_tag=true" >> $GITHUB_ENV
+        elif [ "${{ env.create_tag }}" = "true" ]; then
+          git tag ios/${{ env.IOS_API_VERSION }}
+          git push origin ios/${{ env.IOS_API_VERSION }}
+        else
+          echo "Skip creating IOS tag."
+        fi
 
     - name: Download IOS SDK Logs
       if: env.create_tag == 'true'
       run: |
-        curl -L "${download_url}" -o android-${{ env.IOS_API_VERSION }}.zip
-        echo "DOWNLOADED_FILE=android-${{ env.IOS_API_VERSION }}.zip" >> $GITHUB_ENV
+        curl -L "${download_url}" -o ios-${{ env.IOS_API_VERSION }}.zip
+        echo "DOWNLOADED_FILE=ios-${{ env.IOS_API_VERSION }}.zip" >> $GITHUB_ENV
 
     - name: Upload IOS Release
       if: env.create_tag == 'true'
       uses: ncipollo/release-action@v1
       with:
         artifacts: ${{ env.DOWNLOADED_FILE }}
-        tag: android/${{ env.IOS_API_VERSION }}
-        body: "Gromore Android SDK logs for version ${{ env.IOS_API_VERSION }}"
+        tag: ios/${{ env.IOS_API_VERSION }}
+        body: "Gromore IOS SDK logs for version ${{ env.IOS_API_VERSION }}"
         token: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Request API to Get Android Version
@@ -122,14 +131,23 @@ jobs:
         fi
       
     - name: Create Android Tag
-      if: env.create_tag == 'true'
       run: |
         git config user.name "github-actions[bot]"
         git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
         git fetch --tags
-        git tag android/${{ env.ANDROID_API_VERSION }}
-        git push origin android/${{ env.ANDROID_API_VERSION }}
-    
+        # 如果没有任何 tag，则直接创建当前版本的 tag
+        if [ -z "$(git tag -l)" ]; then
+          echo "No tags found, creating initial Android tag android/${{ env.ANDROID_API_VERSION }}"
+          git tag android/${{ env.ANDROID_API_VERSION }}
+          git push origin android/${{ env.ANDROID_API_VERSION }}
+          echo "create_tag=true" >> $GITHUB_ENV
+        elif [ "${{ env.create_tag }}" = "true" ]; then
+          git tag android/${{ env.ANDROID_API_VERSION }}
+          git push origin android/${{ env.ANDROID_API_VERSION }}
+        else
+          echo "Skip creating Android tag."
+        fi
+
     - name: Create Android Tag
       if: env.create_tag == 'true'
       run: |
