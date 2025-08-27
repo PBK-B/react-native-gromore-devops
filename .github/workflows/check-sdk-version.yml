@@ -58,8 +58,18 @@ jobs:
           echo "create_tag=false" >> $GITHUB_ENV
         fi  
 
+    - name: Check existing tags (IOS)
+      id: check-ios-tags
+      run: |
+        existing=$(gh api repos/${{ env.USER_REP }}/tags --jq '.[].name' | grep "ios/" || true)
+        if [ -z "$existing" ]; then
+          echo "NO_TAGS=true" >> $GITHUB_ENV
+        else
+          echo "NO_TAGS=false" >> $GITHUB_ENV
+        fi
+
     - name: Create IOS Tag
-      if: env.create_tag == 'true' || ( ! env.create_tag && env.IOS_API_VERSION != '' )
+      if: env.create_tag == 'true' || env.NO_TAGS == 'true'
       uses: rickstaa/action-create-tag@v1
       with:
         tag: ios/${{ env.IOS_API_VERSION }}
@@ -119,9 +129,19 @@ jobs:
           echo "Version has not changed."
           echo "create_tag=false" >> $GITHUB_ENV
         fi
+    
+    - name: Check existing tags (Android)
+      id: check-android-tags
+      run: |
+        existing=$(gh api repos/${{ env.USER_REP }}/tags --jq '.[].name' | grep "android/" || true)
+        if [ -z "$existing" ]; then
+          echo "NO_TAGS_ANDROID=true" >> $GITHUB_ENV
+        else
+          echo "NO_TAGS_ANDROID=false" >> $GITHUB_ENV
+        fi
       
     - name: Create Android Tag
-      if: env.create_tag == 'true' || ( ! env.create_tag && env.ANDROID_API_VERSION != '' )
+      if: env.create_tag == 'true' || env.NO_TAGS_ANDROID == 'true'
       uses: rickstaa/action-create-tag@v1
       with:
         tag: android/${{ env.ANDROID_API_VERSION }}
